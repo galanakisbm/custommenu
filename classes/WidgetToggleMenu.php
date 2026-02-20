@@ -26,10 +26,20 @@ class WidgetToggleMenu extends \CE\WidgetBase
 
     protected function registerControls()
     {
+        $brand_color = \Configuration::get('OW_BRAND_COLOR') ?: '#268CCD';
+        $show_branding = \Configuration::get('OW_SHOW_BRANDING');
+        if ($show_branding === false) {
+            $show_branding = '1';
+        }
+
         // --- 1. SETTINGS: TOGGLE BUTTON ---
         $this->startControlsSection('section_toggle', ['label' => 'Ρυθμίσεις Toggle Button']);
         $this->addControl('toggle_text', ['label' => 'Κείμενο', 'type' => 'text', 'placeholder' => 'MENU']);
-        $this->addControl('toggle_icon', ['label' => 'Εικονίδιο', 'type' => 'icon', 'default' => ['value' => 'fas fa-bars', 'library' => 'fa-solid']]);
+        $this->addControl('toggle_icon', [
+            'label' => 'Εικονίδιο',
+            'type' => 'icons',
+            'default' => ['value' => 'fas fa-bars', 'library' => 'fa-solid'],
+        ]);
         $this->addControl('toggle_align', [
             'label' => 'Στοίχιση Button',
             'type' => 'select',
@@ -53,24 +63,28 @@ class WidgetToggleMenu extends \CE\WidgetBase
             'options' => ['main' => '1. Κεντρικό', 'column' => '2. Flyout Panel', 'link' => '3. Link'],
         ]);
         $repeater->addControl('item_text', ['label' => 'Κείμενο', 'type' => 'text']);
-        $repeater->addControl('item_icon', ['label' => 'Εικονίδιο', 'type' => 'icon']);
+        $repeater->addControl('item_icon', [
+            'label' => 'Εικονίδιο',
+            'type' => 'icons',
+            'default' => ['value' => '', 'library' => ''],
+        ]);
         $repeater->addControl('link_type', ['label' => 'Πηγή Link', 'type' => 'select', 'default' => 'custom', 'options' => ['custom' => 'Manual', 'category' => 'Category']]);
         $repeater->addControl('category_id', ['label' => 'Κατηγορία', 'type' => 'select', 'options' => $this->get_ps_categories(), 'condition' => ['link_type' => 'category']]);
         $repeater->addControl('auto_sub', ['label' => 'Auto Subs (2 Levels)', 'type' => 'switcher', 'condition' => ['link_type' => 'category', 'item_type' => 'main']]);
         $repeater->addControl('item_link', ['label' => 'URL', 'type' => 'url', 'condition' => ['link_type' => 'custom']]);
         
-        // --- BADGE SETTINGS (CONTENT SIDE - FIX) ---
+        // --- BADGE SETTINGS ---
         $repeater->addControl('badge_text', ['label' => 'Badge Text', 'type' => 'text', 'separator' => 'before']);
         $repeater->addControl('badge_bg', [
-            'label' => 'Badge BG', 
-            'type' => 'color', 
-            'default' => '#268CCD', 
+            'label' => 'Badge BG',
+            'type' => 'color',
+            'default' => $brand_color,
             'selectors' => ['{{WRAPPER}} .ow-toggle-list {{CURRENT_ITEM}} .ow-badge' => 'background-color: {{VALUE}} !important;']
         ]);
         $repeater->addControl('badge_color', [
-            'label' => 'Badge Color', 
-            'type' => 'color', 
-            'default' => '#ffffff', 
+            'label' => 'Badge Color',
+            'type' => 'color',
+            'default' => '#ffffff',
             'selectors' => ['{{WRAPPER}} .ow-toggle-list {{CURRENT_ITEM}} .ow-badge' => 'color: {{VALUE}} !important;']
         ]);
         
@@ -86,7 +100,7 @@ class WidgetToggleMenu extends \CE\WidgetBase
         $this->addControl('btn_bg', ['label' => 'Background', 'type' => 'color', 'selectors' => ['{{WRAPPER}} .ow-toggle-btn' => 'background-color: {{VALUE}} !important;']]);
         $this->endControlsTab();
         $this->startControlsTab('btn_h', ['label' => 'Hover']);
-        $this->addControl('btn_ch', ['label' => 'Color', 'type' => 'color', 'default' => '#268CCD', 'selectors' => ['{{WRAPPER}} .ow-toggle-btn:hover' => 'color: {{VALUE}} !important;']]);
+        $this->addControl('btn_ch', ['label' => 'Color', 'type' => 'color', 'default' => $brand_color, 'selectors' => ['{{WRAPPER}} .ow-toggle-btn:hover' => 'color: {{VALUE}} !important;']]);
         $this->addControl('btn_bgh', ['label' => 'Background', 'type' => 'color', 'selectors' => ['{{WRAPPER}} .ow-toggle-btn:hover' => 'background-color: {{VALUE}} !important;']]);
         $this->endControlsTab();
         $this->endControlsTabs();
@@ -127,27 +141,29 @@ class WidgetToggleMenu extends \CE\WidgetBase
         $this->addControl('l4_c', ['label' => 'Color', 'type' => 'color', 'selectors' => ['{{WRAPPER}} .ow-nested-link' => 'color: {{VALUE}} !important;']]);
         $this->addControl('l4_mc', ['label' => 'Marker Color', 'type' => 'color', 'selectors' => ['{{WRAPPER}} .ow-nested-link::before' => 'color: {{VALUE}} !important;']]);
         
-        $this->addControl('accent_color', ['label' => 'Hover Accent Color', 'type' => 'color', 'default' => '#268CCD', 'separator' => 'before', 'selectors' => ['{{WRAPPER}} .ow-link-l1:hover, {{WRAPPER}} .ow-fly-link:hover' => 'color: {{VALUE}} !important;']]);
+        $this->addControl('accent_color', ['label' => 'Hover Accent Color', 'type' => 'color', 'default' => $brand_color, 'separator' => 'before', 'selectors' => ['{{WRAPPER}} .ow-link-l1:hover, {{WRAPPER}} .ow-fly-link:hover' => 'color: {{VALUE}} !important;']]);
         $this->endControlsSection();
 
         // --- 7. BRANDING (OPTICWEB SUPPORT) ---
-        $this->startControlsSection('section_branding', ['label' => 'Opticweb Support & Info']);
-        $logo_path = __PS_BASE_URI__ . 'modules/ow_custommenu/logo.png';
-        $this->addControl('branding_html', [
-            'type' => 'raw_html',
-            'raw' => '
-                <div style="background: #268CCD; padding: 15px; border-radius: 8px; color: #fff; text-align: center;">
-                    <img src="'.$logo_path.'" style="max-width: 120px; margin-bottom: 10px;" alt="Opticweb">
-                    <p style="margin:0; font-weight: bold; font-size: 14px;">Βασίλης Γαλανάκης</p>
-                    <p style="margin:5px 0; font-size: 12px;">Web Design & Development</p>
-                    <a href="https://opticweb.gr" target="_blank" style="color: #fff; text-decoration: underline; font-size: 13px;">www.opticweb.gr</a>
-                    <div style="margin-top: 10px; font-size: 11px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px; opacity: 0.9;">
-                        Επικοινωνία: info@opticweb.gr
+        if ($show_branding !== '0') {
+            $this->startControlsSection('section_branding', ['label' => 'Opticweb Support & Info']);
+            $logo_path = __PS_BASE_URI__ . 'modules/ow_custommenu/logo.png';
+            $this->addControl('branding_html', [
+                'type' => 'raw_html',
+                'raw' => '
+                    <div style="background: '.$brand_color.'; padding: 15px; border-radius: 8px; color: #fff; text-align: center;">
+                        <img src="'.$logo_path.'" style="max-width: 120px; margin-bottom: 10px;" alt="Opticweb">
+                        <p style="margin:0; font-weight: bold; font-size: 14px;">Βασίλης Γαλανάκης</p>
+                        <p style="margin:5px 0; font-size: 12px;">Web Design & Development</p>
+                        <a href="https://opticweb.gr" target="_blank" style="color: #fff; text-decoration: underline; font-size: 13px;">www.opticweb.gr</a>
+                        <div style="margin-top: 10px; font-size: 11px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px; opacity: 0.9;">
+                            Επικοινωνία: info@opticweb.gr
+                        </div>
                     </div>
-                </div>
-            ',
-        ]);
-        $this->endControlsSection();
+                ',
+            ]);
+            $this->endControlsSection();
+        }
     }
 
     protected function render()
@@ -206,7 +222,7 @@ class WidgetToggleMenu extends \CE\WidgetBase
                 justify-content: space-between; padding: 8px 0; cursor: pointer; 
             }
             .ow-text-wrapper { position: relative; display: inline-flex; align-items: center; }
-            .ow-badge { position: absolute; top: -10px; right: -15px; font-size: 9px; padding: 2px 5px; border-radius: 3px; z-index: 2; line-height: 1; pointer-events: none; }
+            .ow-badge { display: inline-block; font-size: 9px; padding: 2px 5px; border-radius: 3px; margin-left: 5px; z-index: 2; line-height: 1; pointer-events: none; white-space: nowrap; }
             
             .ow-sub-indicator { opacity: 0.5; font-size: 12px; transition: 0.3s; }
             .ow-item.sub-open .ow-sub-indicator { transform: rotate(180deg); opacity: 1; }
@@ -231,7 +247,9 @@ class WidgetToggleMenu extends \CE\WidgetBase
 
         echo '<div id="'.$id_w.'" class="ow-toggle-wrapper">
             <button class="ow-toggle-btn" onclick="event.stopPropagation(); this.parentElement.classList.toggle(\'open\');">';
-            if (!empty($settings['toggle_icon']['value'])) echo '<i class="'.htmlspecialchars($settings['toggle_icon']['value']).'"></i>';
+            if (!empty($settings['toggle_icon']['value'])) {
+                \CE\IconsManager::renderIcon($settings['toggle_icon'], ['aria-hidden' => 'true']);
+            }
             if (!empty($settings['toggle_text'])) echo '<span>'.htmlspecialchars($settings['toggle_text']).'</span>';
         echo '</button>';
         
@@ -254,7 +272,9 @@ class WidgetToggleMenu extends \CE\WidgetBase
             
             echo '<a href="'.htmlspecialchars($m['url']).'" class="ow-link-l1" onclick="'.$click_action.'">';
             echo '<span class="ow-text-wrapper">';
-            if (!empty($m['item_icon']['value'])) echo '<i class="'.htmlspecialchars($m['item_icon']['value']).'" style="margin-right:8px;"></i>';
+            if (!empty($m['item_icon']['value'])) {
+                \CE\IconsManager::renderIcon($m['item_icon'], ['aria-hidden' => 'true', 'style' => 'margin-right:8px;']);
+            }
             echo htmlspecialchars($m['item_text']);
             if (!empty($m['badge_text'])) echo '<span class="ow-badge">'.htmlspecialchars($m['badge_text']).'</span>';
             echo '</span>';
@@ -264,9 +284,11 @@ class WidgetToggleMenu extends \CE\WidgetBase
             if ($has_subs) {
                 echo '<div class="ow-flyout"><div class="ow-fly-content">';
                 foreach ($m['cols'] as $col) {
-                    echo '<a href="'.htmlspecialchars($col['url']).'" class="ow-fly-title">'.htmlspecialchars($col['item_text']).'</a>';
+                    $col_url = isset($col['url']) ? $col['url'] : ($col['item_link']['url'] ?? '#');
+                    echo '<a href="'.htmlspecialchars($col_url).'" class="ow-fly-title">'.htmlspecialchars($col['item_text']).'</a>';
                     foreach ($col['links'] as $l) {
-                        echo '<a href="'.htmlspecialchars($l['url']).'" class="ow-fly-link">'.htmlspecialchars($l['item_text']).'</a>';
+                        $l_url = isset($l['url']) ? $l['url'] : ($l['item_link']['url'] ?? '#');
+                        echo '<a href="'.htmlspecialchars($l_url).'" class="ow-fly-link">'.htmlspecialchars($l['item_text']).'</a>';
                         if (!empty($l['subs'])) {
                             foreach ($l['subs'] as $sub) echo '<a href="'.htmlspecialchars($sub['url']).'" class="ow-fly-link ow-nested-link">'.htmlspecialchars($sub['item_text']).'</a>';
                         }

@@ -26,6 +26,12 @@ class WidgetPopUp extends \CE\WidgetBase
 
     protected function registerControls()
     {
+        $brand_color = \Configuration::get('OW_BRAND_COLOR') ?: '#268CCD';
+        $show_branding = \Configuration::get('OW_SHOW_BRANDING');
+        if ($show_branding === false) {
+            $show_branding = '1';
+        }
+
         // --- 1. SETTINGS ---
         $this->startControlsSection('section_settings', ['label' => 'Ρυθμίσεις Εμφάνισης']);
         $this->addControl('auto_open', [
@@ -43,7 +49,12 @@ class WidgetPopUp extends \CE\WidgetBase
         ]);
         
         $this->addControl('btn_text', ['label' => 'Κείμενο Κουμπιού', 'type' => 'text', 'default' => 'Άνοιγμα Pop-up', 'condition' => ['auto_open' => 'no']]);
-        $this->addControl('btn_icon', ['label' => 'Εικονίδιο', 'type' => 'icon', 'condition' => ['auto_open' => 'no']]);
+        $this->addControl('btn_icon', [
+            'label' => 'Εικονίδιο',
+            'type' => 'icons',
+            'default' => ['value' => '', 'library' => ''],
+            'condition' => ['auto_open' => 'no'],
+        ]);
         $this->addControl('btn_align', [
             'label' => 'Στοίχιση', 'type' => 'select', 'default' => 'flex-start',
             'options' => ['flex-start' => 'Αριστερά', 'center' => 'Κέντρο', 'flex-end' => 'Δεξιά'],
@@ -69,7 +80,7 @@ class WidgetPopUp extends \CE\WidgetBase
         $this->startControlsTabs('btn_tabs');
         $this->startControlsTab('btn_n', ['label' => 'Normal']);
         $this->addControl('btn_c', ['label' => 'Color', 'type' => 'color', 'selectors' => ['{{WRAPPER}} .ow-popup-btn' => 'color: {{VALUE}} !important;']]);
-        $this->addControl('btn_bg', ['label' => 'Background', 'type' => 'color', 'selectors' => ['{{WRAPPER}} .ow-popup-btn' => 'background-color: {{VALUE}} !important;']]);
+        $this->addControl('btn_bg', ['label' => 'Background', 'type' => 'color', 'default' => $brand_color, 'selectors' => ['{{WRAPPER}} .ow-popup-btn' => 'background-color: {{VALUE}} !important;']]);
         $this->endControlsTab();
         $this->startControlsTab('btn_h', ['label' => 'Hover']);
         $this->addControl('btn_ch', ['label' => 'Color', 'type' => 'color', 'selectors' => ['{{WRAPPER}} .ow-popup-btn:hover' => 'color: {{VALUE}} !important;']]);
@@ -98,6 +109,7 @@ class WidgetPopUp extends \CE\WidgetBase
 
         $this->addControl('overlay_bg', ['label' => 'Overlay Color', 'type' => 'color', 'default' => 'rgba(0,0,0,0.8)', 'selectors' => ['#ow-modal-{{ID}}' => 'background-color: {{VALUE}} !important;']]);
         $this->addControl('card_bg', ['label' => 'Card BG', 'type' => 'color', 'default' => '#ffffff', 'selectors' => ['#ow-modal-{{ID}} .ow-popup-card' => 'background-color: {{VALUE}} !important;']]);
+        $this->addControl('close_bg', ['label' => 'Close Button BG', 'type' => 'color', 'default' => $brand_color, 'selectors' => ['#ow-modal-{{ID}} .ow-popup-close' => 'background-color: {{VALUE}} !important;']]);
         $this->addControl('card_rad', ['label' => 'Radius', 'type' => 'dimensions', 'default' => ['top'=>'15','right'=>'15','bottom'=>'15','left'=>'15','unit'=>'px'], 'selectors' => ['#ow-modal-{{ID}} .ow-popup-card, #ow-modal-{{ID}} .ow-popup-iframe' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;']]);
         $this->addGroupControl(\CE\GroupControlBoxShadow::getType(), ['name' => 'card_shadow', 'selector' => '#ow-modal-{{ID}} .ow-popup-card']);
         $this->endControlsSection();
@@ -112,10 +124,12 @@ class WidgetPopUp extends \CE\WidgetBase
         $this->endControlsSection();
 
         // --- 6. BRANDING ---
-        $this->startControlsSection('section_branding', ['label' => 'Opticweb Support & Info']);
-        $logo_path = __PS_BASE_URI__ . 'modules/ow_custommenu/logo.png';
-        $this->addControl('branding_html', ['type' => 'raw_html', 'raw' => '<div style="background:#268CCD;padding:15px;border-radius:8px;color:#fff;text-align:center;"><img src="'.$logo_path.'" style="max-width:120px;margin-bottom:10px;"><p style="margin:0;font-weight:bold;">Βασίλης Γαλανάκης</p><a href="https://opticweb.gr" target="_blank" style="color:#fff;text-decoration:underline;">www.opticweb.gr</a></div>']);
-        $this->endControlsSection();
+        if ($show_branding !== '0') {
+            $this->startControlsSection('section_branding', ['label' => 'Opticweb Support & Info']);
+            $logo_path = __PS_BASE_URI__ . 'modules/ow_custommenu/logo.png';
+            $this->addControl('branding_html', ['type' => 'raw_html', 'raw' => '<div style="background:'.$brand_color.';padding:15px;border-radius:8px;color:#fff;text-align:center;"><img src="'.$logo_path.'" style="max-width:120px;margin-bottom:10px;"><p style="margin:0;font-weight:bold;">Βασίλης Γαλανάκης</p><a href="https://opticweb.gr" target="_blank" style="color:#fff;text-decoration:underline;">www.opticweb.gr</a></div>']);
+            $this->endControlsSection();
+        }
     }
 
     protected function render()
@@ -123,6 +137,7 @@ class WidgetPopUp extends \CE\WidgetBase
         $settings = $this->getSettingsForDisplay();
         $id_w = $this->getId();
         $source = $settings['content_source'];
+        $brand_color = \Configuration::get('OW_BRAND_COLOR') ?: '#268CCD';
         
         echo '<style>
             #ow-modal-'.$id_w.' { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; z-index: 999999; }
@@ -134,7 +149,7 @@ class WidgetPopUp extends \CE\WidgetBase
             }
             #ow-modal-'.$id_w.' .ow-popup-close { 
                 position: absolute; top: -15px; right: -15px; width: 35px; height: 35px; 
-                background: #268CCD; color: #fff; border-radius: 50%; display: flex; 
+                background: '.htmlspecialchars($brand_color).'; color: #fff; border-radius: 50%; display: flex; 
                 align-items: center; justify-content: center; cursor: pointer; z-index: 9999999; 
                 border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-weight: bold; 
             }
@@ -149,7 +164,9 @@ class WidgetPopUp extends \CE\WidgetBase
 
         if ($settings['auto_open'] !== 'yes') {
             echo '<div class="ow-popup-trigger-wrapper"><button class="ow-popup-btn" onclick="document.getElementById(\'ow-modal-'.$id_w.'\').classList.add(\'active\'); document.body.style.overflow=\'hidden\';">';
-            if (!empty($settings['btn_icon']['value'])) echo '<i class="'.htmlspecialchars($settings['btn_icon']['value']).'"></i>';
+            if (!empty($settings['btn_icon']['value'])) {
+                \CE\IconsManager::renderIcon($settings['btn_icon'], ['aria-hidden' => 'true']);
+            }
             echo '<span>'.htmlspecialchars($settings['btn_text']).'</span></button></div>';
         }
 
@@ -192,11 +209,12 @@ class WidgetPopUp extends \CE\WidgetBase
             }
             $onload_script .= "} catch(e){}";
 
-            echo '<iframe src="'.$cms_url.'" class="ow-popup-iframe" loading="lazy" onload="'.$onload_script.'"></iframe>';
+            echo '<iframe src="'.htmlspecialchars($cms_url).'" class="ow-popup-iframe" loading="lazy" onload="'.htmlspecialchars($onload_script, ENT_QUOTES).'"></iframe>';
 
         } else {
             echo '<div style="padding:30px;">';
             if (!empty($settings['pop_title'])) echo '<h3 style="margin-top:0;">'.htmlspecialchars($settings['pop_title']).'</h3>';
+            // pop_content is WYSIWYG output; intentionally rendered without escaping
             echo $settings['pop_content'];
             echo '</div>';
         }
