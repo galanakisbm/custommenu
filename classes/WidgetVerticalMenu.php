@@ -26,6 +26,12 @@ class WidgetVerticalMenu extends \CE\WidgetBase
 
     protected function registerControls()
     {
+        $brand_color = \Configuration::get('OW_BRAND_COLOR') ?: '#268CCD';
+        $show_branding = \Configuration::get('OW_SHOW_BRANDING');
+        if ($show_branding === false) {
+            $show_branding = '1';
+        }
+
         // --- 1. HEADER SETTINGS ---
         $this->startControlsSection('section_header_settings', ['label' => 'Ρυθμίσεις Επικεφαλίδας']);
         $this->addControl('header_mode', [
@@ -54,9 +60,8 @@ class WidgetVerticalMenu extends \CE\WidgetBase
             ],
         ]);
         
-        // NEW: Linkable Switcher for Level 1
         $repeater->addControl('is_linkable', [
-            'label' => 'Ενεργό Link (L1);',
+            'label' => 'Ενεργό Link (L1)',
             'type' => 'switcher',
             'label_on' => 'Ναι',
             'label_off' => 'Όχι',
@@ -83,7 +88,7 @@ class WidgetVerticalMenu extends \CE\WidgetBase
         $repeater->addControl('category_id', ['label' => 'Κατηγορία', 'type' => 'select', 'options' => $this->get_ps_categories(), 'condition' => ['link_type' => 'category']]);
         $repeater->addControl('auto_sub', ['label' => 'Auto Subs (2 Levels)', 'type' => 'switcher', 'condition' => ['link_type' => 'category', 'item_type' => 'main']]);
         
-        $repeater->addControl('is_mega', ['label' => 'Mega Panel;', 'type' => 'switcher', 'condition' => ['item_type' => 'main']]);
+        $repeater->addControl('is_mega', ['label' => 'Mega Panel', 'type' => 'switcher', 'condition' => ['item_type' => 'main']]);
         
         $repeater->addControl('dropdown_width', [
             'label' => 'Πλάτος Panel', 
@@ -101,7 +106,7 @@ class WidgetVerticalMenu extends \CE\WidgetBase
         ]);
         $repeater->addControl('item_link', ['label' => 'URL', 'type' => 'url', 'condition' => ['link_type' => 'custom']]);
         $repeater->addControl('badge_text', ['label' => 'Badge Text', 'type' => 'text', 'separator' => 'before']);
-        $repeater->addControl('badge_bg', ['label' => 'Badge BG', 'type' => 'color', 'default' => '#268CCD', 'selectors' => ['{{WRAPPER}} {{CURRENT_ITEM}} .ow-badge' => 'background-color: {{VALUE}};']]);
+        $repeater->addControl('badge_bg', ['label' => 'Badge BG', 'type' => 'color', 'default' => $brand_color, 'selectors' => ['{{WRAPPER}} {{CURRENT_ITEM}} .ow-badge' => 'background-color: {{VALUE}};']]);
         $repeater->addControl('badge_color', ['label' => 'Badge Color', 'type' => 'color', 'default' => '#ffffff', 'selectors' => ['{{WRAPPER}} {{CURRENT_ITEM}} .ow-badge' => 'color: {{VALUE}};']]);
 
         $this->addControl('menu_items', ['label' => 'Στοιχεία Μενού', 'type' => 'repeater', 'fields' => $repeater->getControls(), 'titleField' => '{{{ item_text }}}']);
@@ -112,7 +117,7 @@ class WidgetVerticalMenu extends \CE\WidgetBase
         $this->addGroupControl(\CE\GroupControlTypography::getType(), ['name' => 'header_typo', 'selector' => '{{WRAPPER}} .ow-vm-header']);
         $this->startControlsTabs('header_tabs');
         $this->startControlsTab('header_n', ['label' => 'Normal']);
-        $this->addControl('header_bg', ['label' => 'Background', 'type' => 'color', 'default' => '#268CCD', 'selectors' => ['{{WRAPPER}} .ow-vm-header' => 'background-color: {{VALUE}};']]);
+        $this->addControl('header_bg', ['label' => 'Background', 'type' => 'color', 'default' => $brand_color, 'selectors' => ['{{WRAPPER}} .ow-vm-header' => 'background-color: {{VALUE}};']]);
         $this->addControl('header_color', ['label' => 'Text Color', 'type' => 'color', 'default' => '#ffffff', 'selectors' => ['{{WRAPPER}} .ow-vm-header' => 'color: {{VALUE}};']]);
         $this->endControlsTab();
         $this->startControlsTab('header_h', ['label' => 'Hover']);
@@ -153,7 +158,7 @@ class WidgetVerticalMenu extends \CE\WidgetBase
         $this->addControl('link_icon_c', ['label' => 'Icon Color', 'type' => 'color', 'selectors' => ['{{WRAPPER}} .ow-vm-text i' => 'color: {{VALUE}};', '{{WRAPPER}} .ow-vm-text svg' => 'fill: {{VALUE}};']]);
         $this->endControlsTab();
         $this->startControlsTab('item_tab_h', ['label' => 'Hover']);
-        $this->addControl('link_ch', ['label' => 'Text Color', 'type' => 'color', 'default' => '#268CCD', 'selectors' => ['{{WRAPPER}} .ow-vm-li:hover > .ow-vm-a' => 'color: {{VALUE}};']]);
+        $this->addControl('link_ch', ['label' => 'Text Color', 'type' => 'color', 'default' => $brand_color, 'selectors' => ['{{WRAPPER}} .ow-vm-li:hover > .ow-vm-a' => 'color: {{VALUE}};']]);
         $this->addControl('link_bgh', ['label' => 'Background', 'type' => 'color', 'default' => '#f9f9f9', 'selectors' => ['{{WRAPPER}} .ow-vm-li:hover > .ow-vm-a' => 'background-color: {{VALUE}};']]);
         $this->endControlsTab();
         $this->endControlsTabs();
@@ -181,10 +186,12 @@ class WidgetVerticalMenu extends \CE\WidgetBase
         $this->endControlsSection();
         
         // --- 6. BRANDING ---
-        $this->startControlsSection('section_branding', ['label' => 'Opticweb Support']);
-        $logo_path = __PS_BASE_URI__ . 'modules/ow_custommenu/logo.png';
-        $this->addControl('branding_html', ['type' => 'raw_html', 'raw' => '<div style="background: #268CCD; padding: 15px; border-radius: 8px; color: #fff; text-align: center;"><img src="'.$logo_path.'" style="max-width: 120px; margin-bottom: 10px;"><p style="margin:0; font-weight: bold;">Βασίλης Γαλανάκης</p><a href="https://opticweb.gr" target="_blank" style="color: #fff; text-decoration: underline;">www.opticweb.gr</a></div>']);
-        $this->endControlsSection();
+        if ($show_branding !== '0') {
+            $this->startControlsSection('section_branding', ['label' => 'Opticweb Support']);
+            $logo_path = __PS_BASE_URI__ . 'modules/ow_custommenu/logo.png';
+            $this->addControl('branding_html', ['type' => 'raw_html', 'raw' => '<div style="background: '.$brand_color.'; padding: 15px; border-radius: 8px; color: #fff; text-align: center;"><img src="'.$logo_path.'" style="max-width: 120px; margin-bottom: 10px;"><p style="margin:0; font-weight: bold;">Βασίλης Γαλανάκης</p><a href="https://opticweb.gr" target="_blank" style="color: #fff; text-decoration: underline;">www.opticweb.gr</a></div>']);
+            $this->endControlsSection();
+        }
     }
 
     protected function render()
@@ -277,6 +284,7 @@ class WidgetVerticalMenu extends \CE\WidgetBase
         if (!empty($settings['header_icon']['value'])) { \CE\IconsManager::renderIcon($settings['header_icon'], ['aria-hidden' => 'true']); }
         echo '<span>'.htmlspecialchars($settings['menu_title']).'</span>';
         echo '</div>';
+        // Only show toggle chevron when in button mode
         if ($is_button) echo '<i class="ceicon-chevron-down ow-vm-toggle-icon"></i>';
         echo '</div>';
 
